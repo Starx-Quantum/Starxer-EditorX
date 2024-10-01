@@ -6,7 +6,7 @@ body {
   padding: 0;
   margin: 0;
   font-family: "Quicksand", Arial, sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 14px;
   line-height: 1.7;
   margin: 0 auto;
@@ -91,7 +91,7 @@ h2 {
   display: flex;
   flex-direction: column;
   padding: 0.5rem;
-  background: hsl(225, 6%, 25%);
+  background: hsl(255, 6%, 25%);
   position: relative;
 }
 
