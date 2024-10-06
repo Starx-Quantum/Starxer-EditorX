@@ -1,108 +1,69 @@
-var html = document.getElementById('html');
-var css = document.getElementById('css');
-var js = document.getElementById('js');
-var code = document.getElementById('output').contentWindow.document;
+const htmlEditor = document.getElementById('html');
+const cssEditor = document.getElementById('css');
+const jsEditor = document.getElementById('js');
+const outputFrame = document.getElementById('output');
+const previewBtn = document.querySelector('.preview-btn');
+const saveStatus = document.getElementById('save-status');
+const toggleModeBtn = document.querySelector('.toggle-mode');
+
+// Compile function to combine HTML, CSS, and JS, and render in the iframe
 function compile() {
-  const PREFIX = 'livecode-';
-  const data = ['html', 'css', 'js'].map((key) => {
-    const prefixedKey = PREFIX + key;
-    const jsonValue = localStorage.getItem(prefixedKey);
+  const htmlCode = htmlEditor.value;
+  const cssCode = `<style>${cssEditor.value}</style>`;
+  const jsCode = `<script>${jsEditor.value}<\/script>`;
 
-    if (jsonValue != null) return JSON.parse(jsonValue);
-  });
-  setInitial(data);
-  document.body.onkeyup = function () {
-    localStorage.setItem('livecode-html', JSON.stringify(html.value));
-    localStorage.setItem('livecode-css', JSON.stringify(css.value));
-    localStorage.setItem('livecode-js', JSON.stringify(js.value));
-    code.open();
-    code.writeln(
-      html.value +
-        '<style>' +
-        css.value +
-        '</style>' +
-        '<script>' +
-        js.value +
-        '</script>'
-    );
-    code.close();
-  };
+  const combinedCode = htmlCode + cssCode + jsCode;
+
+  outputFrame.srcdoc = combinedCode;
+  autoSave();
 }
 
-function setInitial(data) {
-  let htmlContent = data[0] || '<h1> Welcome to Starxer-EditorX ! </h1>';
-  let cssContent =
-    data[1] ||
-    `body {
-    background-color: #222;
-    }
-    h1 {
-      color: #fff;
-      text-align: center;
-      margin-top: 10%;
-    }`;
-  let jsContent = data[2] || '';
-  css.value = cssContent;
-  js.value = jsContent;
-  html.value = htmlContent;
-  code.open();
-  code.writeln(
-    htmlContent +
-      '<style>' +
-      cssContent +
-      '</style>' +
-      '<script>' +
-      jsContent +
-      '</script>'
-  );
-  code.close();
+// Auto-save content to local storage
+function autoSave() {
+  localStorage.setItem('html', htmlEditor.value);
+  localStorage.setItem('css', cssEditor.value);
+  localStorage.setItem('js', jsEditor.value);
+  saveStatus.textContent = 'Auto-saved';
+  setTimeout(() => (saveStatus.textContent = ''), 2000);
 }
 
-compile();
-
-document.querySelectorAll('.control').forEach((control) =>
-  control.addEventListener('click', (e) => {
-    e.target.parentElement.parentElement.classList.toggle('collapse');
-    e.target.classList.add('close');
-    e.target.parentElement.querySelector('h2').classList.toggle('hidden');
-  })
-);
-
-document.querySelectorAll('.clear').forEach((clear) =>
-  clear.addEventListener('click', (e) => {
-    const ele = e.target.classList[1];
-    document.querySelector(`#${ele}`).value = '';
-    localStorage.setItem(`livecode-${ele}`, JSON.stringify(''));
-    compile();
-  })
-);
-
-document.querySelectorAll('.copy-btn').forEach((copy) => {
-  copy.addEventListener('click', (e) => {
-    const temp = e.target.innerHTML;
-    e.target.innerText = 'Copied!';
-    setTimeout(function () {
-      e.target.innerHTML = temp;
-    }, 800);
-  });
-});
-
-document.querySelector('.copy-html').addEventListener('click', (e) => {
-  const code = document.querySelector('#html');
-  copyCode(code);
-});
-
-document.querySelector('.copy-css').addEventListener('click', (e) => {
-  const code = document.querySelector('#css');
-  copyCode(code);
-});
-document.querySelector('.copy-js').addEventListener('click', (e) => {
-  const code = document.querySelector('#js');
-  copyCode(code);
-});
-
-function copyCode(code) {
-  code.select();
-  document.execCommand('copy');
-  swal('Copied!', 'You are ready to rock', 'Darkbreaker');
+// Load saved data from localStorage
+function loadSavedData() {
+  htmlEditor.value = localStorage.getItem('html') || '';
+  cssEditor.value = localStorage.getItem('css') || '';
+  jsEditor.value = localStorage.getItem('js') || '';
+  compile();
 }
+
+// Clear editor content
+document.getElementById('clear-html').addEventListener('click', () => {
+  htmlEditor.value = '';
+  compile();
+});
+document.getElementById('clear-css').addEventListener('click', () => {
+  cssEditor.value = '';
+  compile();
+});
+document.getElementById('clear-js').addEventListener('click', () => {
+  jsEditor.value = '';
+  compile();
+});
+
+// Event listeners for real-time compiling
+htmlEditor.addEventListener('input', compile);
+cssEditor.addEventListener('input', compile);
+jsEditor.addEventListener('input', compile);
+
+// Dark/Light Mode Toggle
+toggleModeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  toggleModeBtn.textContent = document.body.classList.contains('dark-mode')
+    ? 'Light Mode'
+    : 'Dark Mode';
+});
+
+// Load saved data on page load
+window.addEventListener('load', loadSavedData);
+
+// Preview button click to compile the code
+previewBtn.addEventListener('click', compile);
